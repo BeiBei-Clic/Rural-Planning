@@ -6,7 +6,7 @@ from langchain_openai import ChatOpenAI
 from memory.draft import rural_DraftState
 
 
-class ConditionAgent:
+class ConditionExplorer:
     """
     条件分析智能体，用于从 Markdown 文件读取内容并生成自然条件或政策分析报告。
     """
@@ -121,7 +121,7 @@ async def main():
     )
 
     # 初始化条件分析智能体
-    analysis_agent = ConditionAgent(draft=draft)
+    analysis_agent = ConditionExplorer(draft=draft)
 
     # 定义自然条件因素列表
     natural_factors = [
