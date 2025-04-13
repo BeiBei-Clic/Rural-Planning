@@ -18,7 +18,7 @@ class ConditionExplorer:
 
         :param draft: rural_DraftState 实例，包含村庄名称、文件路径等信息
         """
-        self.draft = draft
+        self.draft = draft  # 存储 draft 实例，用于后续分析
 
     async def condition_explore(self, condition_type: str, condition: str) -> Dict[str, Any]:
         """
@@ -45,7 +45,7 @@ class ConditionExplorer:
         elif condition_type == "policy":
             self.draft["Local_Conditions"]["Policy"][condition] = response.content
 
-        return self.draft
+        return self.draft  # 返回更新后的 draft_state
 
     def _construct_natural_analysis_prompt(self, condition: str) -> str:
         """
@@ -87,14 +87,15 @@ class ConditionExplorer:
 - 如果是优势，分析该案例村是如何利用的；如果是劣势，分析该案例村是如何克服的。
 '''
 
-    async def parallel_explore(self, conditions: Dict[str, List[str]]) -> List[Dict[str, Any]]:
+    async def parallel_explore(self, conditions: Dict[str, List[str]]) -> Dict[str, Any]:
         """
         并行执行条件分析。
 
         :param conditions: 包含自然条件和政策条件的字典
-        :return: 更新后的 draft_state 列表，包含生成的分析报告
+        :return: 更新后的 draft_state，包含生成的分析报告
         """
         tasks = []
+        # 为每个条件创建任务
         for condition_type, condition_list in conditions.items():
             for condition in condition_list:
                 tasks.append(self.condition_explore(condition_type, condition))
@@ -106,7 +107,15 @@ class ConditionExplorer:
             batch_tasks = tasks[i:i + batch_size]
             batch_results = await asyncio.gather(*batch_tasks)
             results.extend(batch_results)
-        return results
+
+        # 合并结果到 draft 中
+        for result in results:
+            if result["Local_Conditions"].get("Natural"):
+                self.draft["Local_Conditions"]["Natural"].update(result["Local_Conditions"]["Natural"])
+            if result["Local_Conditions"].get("Policy"):
+                self.draft["Local_Conditions"]["Policy"].update(result["Local_Conditions"]["Policy"])
+
+        return self.draft  # 返回最终的 draft_state
 
 
 def read_markdown_files(directory_path: str) -> Dict[str, str]:
@@ -129,26 +138,37 @@ def read_markdown_files(directory_path: str) -> Dict[str, str]:
     return markdown_files
 
 
-def type_print(results: List[Dict[str, Any]]):
+def type_print(result_draft: Dict[str, Any]):
     """
     格式化输出分析报告。
 
-    :param results: 分析报告列表
+    :param result_draft: 包含分析报告的字典
     """
-    for result in results:
-        if "Local_Conditions" in result and "Natural" in result["Local_Conditions"]:
-            print("\n### 自然条件分析报告")
-            for condition, analysis in result["Local_Conditions"]["Natural"].items():
-                print(f"\n#### {condition}")
-                print(analysis)
-                print("\n---")
+    def print_nested_dict(d: Dict[str, Any], indent: int = 0):
+        """
+        递归打印嵌套字典的内容。
 
-        if "Local_Conditions" in result and "Policy" in result["Local_Conditions"]:
-            print("\n### 政策分析报告")
-            for condition, analysis in result["Local_Conditions"]["Policy"].items():
-                print(f"\n#### {condition}")
-                print(analysis)
-                print("\n---")
+        :param d: 要打印的字典
+        :param indent: 当前缩进级别
+        """
+        for key, value in d.items():
+            if isinstance(value, dict):
+                print(" " * indent + f"### {key}")
+                print_nested_dict(value, indent + 4)
+            else:
+                print(" " * indent + f"#### {key}")
+                print(" " * indent + value)
+                print(" " * indent + "---")
+
+    # 格式化输出自然条件分析报告
+    if "Natural" in result_draft["Local_Conditions"]:
+        print("\n### 自然条件分析报告")
+        print_nested_dict(result_draft["Local_Conditions"]["Natural"])
+
+    # 格式化输出政策分析报告
+    if "Policy" in result_draft["Local_Conditions"]:
+        print("\n### 政策分析报告")
+        print_nested_dict(result_draft["Local_Conditions"]["Policy"])
 
 
 if __name__ == "__main__":
@@ -165,7 +185,7 @@ if __name__ == "__main__":
     analysis_agent = ConditionExplorer(draft=draft)
 
     # 并行执行条件分析
-    results = asyncio.run(analysis_agent.parallel_explore(guidelines["condition"]))
+    result_draft = asyncio.run(analysis_agent.parallel_explore(guidelines["condition"]))
 
     # 输出结果
-    type_print(results)
+    type_print(result_draft)
