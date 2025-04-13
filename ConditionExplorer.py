@@ -1,9 +1,10 @@
 import os
-from typing import Dict, Any
+from typing import Dict, Any, List
 import asyncio
 from langchain_openai import ChatOpenAI
 
 from memory.draft import rural_DraftState
+from guidelines import guidelines
 
 
 class ConditionExplorer:
@@ -19,7 +20,7 @@ class ConditionExplorer:
         """
         self.draft = draft
 
-    async def generate_analysis(self, condition_type: str, condition: str) -> Dict[str, Any]:
+    async def condition_explore(self, condition_type: str, condition: str) -> Dict[str, Any]:
         """
         生成分析报告。
 
@@ -86,6 +87,27 @@ class ConditionExplorer:
 - 如果是优势，分析该案例村是如何利用的；如果是劣势，分析该案例村是如何克服的。
 '''
 
+    async def parallel_explore(self, conditions: Dict[str, List[str]]) -> List[Dict[str, Any]]:
+        """
+        并行执行条件分析。
+
+        :param conditions: 包含自然条件和政策条件的字典
+        :return: 更新后的 draft_state 列表，包含生成的分析报告
+        """
+        tasks = []
+        for condition_type, condition_list in conditions.items():
+            for condition in condition_list:
+                tasks.append(self.condition_explore(condition_type, condition))
+
+        # 分批执行任务以避免资源耗尽
+        batch_size = 10  # 每批处理 10 个任务
+        results = []
+        for i in range(0, len(tasks), batch_size):
+            batch_tasks = tasks[i:i + batch_size]
+            batch_results = await asyncio.gather(*batch_tasks)
+            results.extend(batch_results)
+        return results
+
 
 def read_markdown_files(directory_path: str) -> Dict[str, str]:
     """
@@ -107,69 +129,12 @@ def read_markdown_files(directory_path: str) -> Dict[str, str]:
     return markdown_files
 
 
-async def main():
+def type_print(results: List[Dict[str, Any]]):
     """
-    测试条件分析智能体的功能。
+    格式化输出分析报告。
+
+    :param results: 分析报告列表
     """
-    # 创建 rural_DraftState 实例
-    draft = rural_DraftState(
-        draft=[],
-        Village_name="金田村",
-        Document=read_markdown_files("Resource"),
-        model="glm-4-flash",
-        Local_Conditions={"Natural": {}, "Policy": {}},
-    )
-
-    # 初始化条件分析智能体
-    analysis_agent = ConditionExplorer(draft=draft)
-
-    # 定义自然条件因素列表
-    natural_factors = [
-        "地形地貌", "海拔高度", "坡度", "坡向", "土壤类型", "土壤肥力", "水资源状况", "河流分布", "湖泊分布",
-        "地下水位", "气候条件", "气温", "降水", "日照", "风向", "风速", "湿度", "生态敏感度", "植被覆盖度",
-        "生物多样性", "自然灾害风险", "地质灾害风险", "气象灾害风险", "水文地质条件", "矿产资源分布", "自然景观资源",
-        "森林资源", "草地资源", "湿地资源", "海洋资源", "土地利用现状", "耕地质量", "林地面积", "草地面积", "水域面积",
-        "未利用地面积", "土地适宜性", "农业适宜性", "建设用地适宜性", "生态保护红线", "水源保护区", "自然保护区",
-        "风景名胜区", "地质公园", "湿地公园", "森林公园", "生态廊道", "生态节点", "交通可达性", "与城市的距离",
-        "与主要交通干线的距离", "与周边乡村的连通性", "能源供应条件", "太阳能资源", "风能资源", "水能资源", "地热资源",
-        "生物能资源", "环境容量", "大气环境容量", "水环境容量", "土壤环境容量", "生态服务功能", "水源涵养功能",
-        "土壤保持功能", "洪水调蓄功能", "生物栖息地功能", "气候调节功能", "废弃物处理能力"
-    ]
-
-    # 定义政策条件因素列表
-    policy_factors = [
-        "推进城乡融合发展，构建城乡统一的建设用地市场，推动人才、技术等要素向乡村流动",
-        "细化村庄分类标准，科学确定发展目标",
-        "加大高标准农田建设投入，完善建设、验收、管护机制",
-        "优化科技创新体系，发展智慧农业",
-        "完善粮食生产补贴和保险政策",
-        "发展乡村种养业、加工流通业、休闲旅游业等",
-        "支持农产品加工产业园和农村电商发展",
-        "健全生态保护补偿制度，推进生态综合补偿",
-        "提高农村公路、供水、能源等基础设施水平",
-        "探索自愿有偿退出办法，保障进城落户农民合法土地权益",
-        "推动县域产业协同发展",
-        "明确用地类型和供地方式，优化乡村产业发展用地政策",
-        "引导县域金融机构支持乡村产业",
-        "增加绿色优质农产品供给",
-        "保护和开发农业文化遗产、传统建筑等",
-        "推动农业与旅游、教育、康养等产业深度融合",
-        "发展生态循环农业，健全生态保护补偿机制",
-        "巩固农村基本经营制度，健全乡村振兴投入保障机制",
-        "优化乡村规划建设"
-    ]
-
-    # 使用 asyncio.gather 并发执行所有异步任务
-    tasks = []
-    for natural_condition in natural_factors:
-        tasks.append(analysis_agent.generate_analysis("natural", natural_condition))
-    for policy_condition in policy_factors:
-        tasks.append(analysis_agent.generate_analysis("policy", policy_condition))
-
-    # 收集所有结果
-    results = await asyncio.gather(*tasks)
-
-    # 格式化输出自然条件分析报告
     for result in results:
         if "Local_Conditions" in result and "Natural" in result["Local_Conditions"]:
             print("\n### 自然条件分析报告")
@@ -186,6 +151,21 @@ async def main():
                 print("\n---")
 
 
-# 运行测试
 if __name__ == "__main__":
-    asyncio.run(main())
+    # 创建 rural_DraftState 实例
+    draft = rural_DraftState(
+        draft=[],
+        Village_name="金田村",
+        Document=read_markdown_files("Resource"),
+        model="glm-4-flash",
+        Local_Conditions={"Natural": {}, "Policy": {}},
+    )
+
+    # 初始化条件分析智能体
+    analysis_agent = ConditionExplorer(draft=draft)
+
+    # 并行执行条件分析
+    results = asyncio.run(analysis_agent.parallel_explore(guidelines["condition"]))
+
+    # 输出结果
+    type_print(results)

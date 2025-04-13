@@ -15,18 +15,16 @@ def read_markdown_files(directory_path: str) -> Dict[str, str]:
     :param directory_path: 包含 Markdown 文件的目录路径
     :return: 一个字典，键是文件名（不包括扩展名），值是文件内容
     """
-    markdown_files = {}  # 用于存储文件名和内容的字典
-
-    # 遍历指定目录下的所有文件
+    markdown_files = {}
     for filename in os.listdir(directory_path):
-        # 检查文件扩展名是否为 .md
         if filename.endswith(".md"):
-            file_path = os.path.join(directory_path, filename)  # 获取文件的完整路径
-            with open(file_path, "r", encoding="utf-8") as file:
-                content = file.read()  # 读取文件内容
-                # 将文件名（不包括扩展名）作为键，内容作为值存储到字典中
-                markdown_files[os.path.splitext(filename)[0]] = content
-
+            file_path = os.path.join(directory_path, filename)
+            try:
+                with open(file_path, "r", encoding="utf-8") as file:
+                    content = file.read()
+                    markdown_files[os.path.splitext(filename)[0]] = content
+            except Exception as e:
+                print(f"Error reading file {filename}: {e}")
     return markdown_files
 
 
@@ -41,7 +39,7 @@ class CheifEditor:
         self.draft = draft
         self.draft["Document"] = read_markdown_files(self.draft["Documents_path"])
 
-    def _initialize_agents(self) -> Dict[str, Callable[[rural_DraftState], rural_DraftState]]:
+    def initialize_agents(self) -> Dict[str, Callable[[rural_DraftState], rural_DraftState]]:
         return {
             "Nature_Analysis": NatureAnalyseAgent(self.draft),
             "Policy_Analysis": PolicyAnalyseAgent(self.draft),

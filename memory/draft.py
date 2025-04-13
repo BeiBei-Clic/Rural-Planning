@@ -9,3 +9,4 @@ class rural_DraftState(TypedDict):
     Document: dict
     Local_Conditions:dict
     model: str
+    Review:dict
