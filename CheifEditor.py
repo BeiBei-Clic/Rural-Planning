@@ -3,9 +3,11 @@ from typing import Dict, Callable, Any
 from langgraph.graph import StateGraph, END
 import asyncio
 
+from guidelines import guidelines
 from memory.draft import rural_DraftState
-from . import NatureAnalyseAgent,PolicyAnalyseAgent
-
+from ConditionExplorer import ConditionExplorer
+from Navigator import Navigator
+from save_to_local import save_data_to_file
 
 
 def read_markdown_files(directory_path: str) -> Dict[str, str]:
@@ -28,51 +30,46 @@ def read_markdown_files(directory_path: str) -> Dict[str, str]:
     return markdown_files
 
 
-# 定义工作流管理器
-class CheifEditor:
-    def __init__(self, draft:rural_DraftState):
+class ChiefEditor:
+    """
+    工作流管理器类，用于管理乡村振兴规划报告的生成流程。
+    """
+
+    def __init__(self, draft: rural_DraftState):
         """
         初始化工作流管理器。
 
         :param draft: 当前的工作状态，包含报告的草稿、审核意见等信息。
         """
         self.draft = draft
-        self.draft["Document"] = read_markdown_files(self.draft["Documents_path"])
+        self.draft["document"] = read_markdown_files(self.draft["documents_path"])
 
     def initialize_agents(self) -> Dict[str, Callable[[rural_DraftState], rural_DraftState]]:
+        """
+        初始化子代理。
+
+        :return: 一个字典，包含初始化的子代理。
+        """
         return {
-            "Nature_Analysis": NatureAnalyseAgent(self.draft),
-            "Policy_Analysis": PolicyAnalyseAgent(self.draft),
+            "condition_explorer": ConditionExplorer(),
+            "navigator": Navigator(),
         }
-        
 
     def _create_workflow(self, agents: Dict[str, Callable[[rural_DraftState], rural_DraftState]]) -> StateGraph:
         """
-        创建工作流。
+        创建工作流图。
 
-        定义工作流的节点和边，描述报告生成、审核和修订的过程。
-
-        :param agents: 包含所有子代理的字典。
+        :param agents: 初始化的子代理。
         :return: 工作流图。
         """
         workflow = StateGraph(rural_DraftState)
-        workflow.set_entry_point("analysis")  # 设置工作流的入口点
+        workflow.add_node("condition", agents["condition_explorer"].parallel_explore)
+        workflow.add_node("navigator", agents["navigator"].start_planning)
 
-        workflow.add_node("Policy_Analysis", agents[""].generate_analysis)  # 添加分析节点
-        workflow.add_node("review_draft", agents["reviewer"].review_draft)  # 添加审核节点
-        workflow.add_node("revise_draft", agents["reviser"].revise_draft)  # 添加修订节点
+        workflow.set_entry_point("condition")
+        workflow.add_edge("condition", "navigator")
+        workflow.set_finish_point("navigator")
 
-        workflow.add_edge("analysis", "review_draft")  # 分析完成后进入审核
-        workflow.add_edge("revise_draft", "review_draft")  # 修订完成后重新审核
-
-        # 添加条件边：根据审核结果决定下一步
-        workflow.add_conditional_edges(
-            "review_draft",
-            lambda result: "pass" if result["review"] == "通过" else "fail",
-            {"pass": END, "fail": "revise_draft"}
-        )
-
-    
         return workflow
 
     async def run(self):
@@ -81,38 +78,33 @@ class CheifEditor:
 
         初始化子代理，创建工作流图，编译工作流并调用。
         """
-        agents = self._initialize_agents()  # 初始化子代理
+        agents = self.initialize_agents()  # 初始化子代理
         workflow = self._create_workflow(agents)  # 创建工作流
         app = workflow.compile()  # 编译工作流
-        result = await app.ainvoke(self.draft_state)  # 调用工作流
+
+        result = await app.ainvoke(self.draft)  # 调用工作流
+        save_data_to_file(result, "results/金田村乡村振兴规划报告.docx")  # 保存数据到文件
+        return result
 
 
-# 测试工作流
 async def main():
     """
     测试工作流。
 
     创建初始的工作状态，初始化工作流管理器并运行。
     """
-    rural_draft_state = rural_DraftState(
-        draft=[],  # 初始为空列表
-        village_name="海南省沙美村",
-        guidelines=[
-            "报告语言是否优美流畅，符合学术规范",
-            "报告是否使用英语进行撰写"
-            # "报告是否包含必要的图表和数据支持",
-        ],
-        review="",  # 初始审核意见为空
-        revision_notes=[],  # 初始修订说明为空
-        query="海南省沙美村的乡村发展现状分析",
-        model="deepseek-chat",
+    draft = rural_DraftState(
+        draft=[],
+        village_name="金田村",
+        documents_path="resource",
+        model="glm-4-flash",
+        local_condition={"natural": {}, "policy": {}},
+        navigate={}
     )
 
-    workflow_manager = CheifEditor(rural_draft_state)  # 初始化工作流管理器
+    workflow_manager = ChiefEditor(draft)  # 初始化工作流管理器
     await workflow_manager.run()  # 运行工作流
 
-# 运行测试
+
 if __name__ == "__main__":
     asyncio.run(main())
-
-    
