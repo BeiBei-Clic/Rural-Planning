@@ -44,3 +44,4 @@ class rural_DraftState(TypedDict):
         ...
     }
     '''
+    navigate_analysis: list

@@ -50,6 +50,7 @@ class Navigator:
         development_positions = await self._determine_development_positions()
         if development_positions:
             draft["navigate"]=development_positions
+            draft["navigate_analysis"]=self.conversation_history
 
         return draft
 
@@ -263,6 +264,7 @@ if __name__=="__main__":
                 金田村自然环境很好。
                 """,
         navigate={},
+        navigate_analysis=[]
     )
 
     # 初始化规划智能体

@@ -7,7 +7,7 @@ from guidelines import guidelines
 from memory.draft import rural_DraftState
 from ConditionExplorer import ConditionExplorer
 from Navigator import Navigator
-from save_to_local import save_data_to_file
+from save_to_local import save_dict_to_file
 
 
 def read_markdown_files(directory_path: str) -> Dict[str, str]:
@@ -83,7 +83,8 @@ class ChiefEditor:
         app = workflow.compile()  # 编译工作流
 
         result = await app.ainvoke(self.draft)  # 调用工作流
-        save_data_to_file(result, "results/金田村乡村振兴规划报告.docx")  # 保存数据到文件
+        
+        save_dict_to_file(result["Navigate"], "Results", f"{result["village_name"]}村乡村振兴规划报告", "word")
         return result
 
 
@@ -97,9 +98,10 @@ async def main():
         draft=[],
         village_name="金田村",
         documents_path="resource",
-        model="google/gemini-2.5-pro-exp-03-25:free",
+        model="qwen/qwen2.5-vl-32b-instruct:free",
         local_condition={"natural": {}, "policy": {}},
-        navigate={}
+        navigate={},
+        navigate_analysis=[]
     )
 
     workflow_manager = ChiefEditor(draft)  # 初始化工作流管理器
