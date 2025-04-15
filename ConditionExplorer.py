@@ -124,6 +124,11 @@ class ConditionExplorer:
         return draft  # 返回最终的 draft_state
 
 
+    async def no_operation(self, draft: rural_DraftState) -> Dict[str, Any]:
+        #文档已经收集好信息了这就是个占位的函数
+        return draft
+
+
 def read_markdown_files(directory_path: str) -> Dict[str, str]:
     """
     读取指定路径下的所有 Markdown 文件，并将内容存储在字典中。

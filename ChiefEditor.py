@@ -63,7 +63,7 @@ class ChiefEditor:
         :return: 工作流图。
         """
         workflow = StateGraph(rural_DraftState)
-        workflow.add_node("condition", agents["condition_explorer"].parallel_explore)
+        workflow.add_node("condition", agents["condition_explorer"].no_operation)
         workflow.add_node("navigator", agents["navigator"].start_planning)
 
         workflow.set_entry_point("condition")

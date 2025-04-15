@@ -237,7 +237,7 @@ if __name__ == "__main__":
     draft = rural_DraftState(
         draft=[],
         village_name="金田村",
-        model="deepseek/deepseek-chat-v3-0324:free",
+        model="google/gemini-2.0-flash-001",
         local_condition={
             "natural": {
                 "地形": "丘陵",
