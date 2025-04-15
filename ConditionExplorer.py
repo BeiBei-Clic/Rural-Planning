@@ -6,6 +6,9 @@ from langchain_openai import ChatOpenAI
 from memory.draft import rural_DraftState
 from guidelines import guidelines
 
+from dotenv import load_dotenv
+load_dotenv()
+
 
 class ConditionExplorer:
     """
