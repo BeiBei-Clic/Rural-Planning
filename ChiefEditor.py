@@ -97,7 +97,7 @@ async def main():
         draft=[],
         village_name="金田村",
         documents_path="resource",
-        model="google/gemini-2.0-flash-001",
+        model="google/gemini-2.5-pro-exp-03-25:free",
         local_condition={"natural": {}, "policy": {}},
         navigate={}
     )
