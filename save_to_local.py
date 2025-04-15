@@ -3,7 +3,7 @@ from docx import Document
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 
-def save_dict_to_file(dictionary, file_path, file_name, file_type):
+def save_dict_to_file(dictionary, file_path, file_name, file_type, keys=None):
     """
     将字典保存为本地文件，支持 Word、PDF 和 Markdown 格式。
     
@@ -12,7 +12,12 @@ def save_dict_to_file(dictionary, file_path, file_name, file_type):
         file_path (str): 文件保存路径
         file_name (str): 文件名
         file_type (str): 文件类型，支持 'word'、'pdf' 或 'markdown'
+        keys (list, optional): 要保存的键列表。如果为 None，则保存整个字典。
     """
+    # 如果指定了 keys，则过滤字典
+    if keys:
+        dictionary = {key: dictionary[key] for key in keys if key in dictionary}
+    
     # 确保文件路径存在
     os.makedirs(file_path, exist_ok=True)
     
@@ -68,11 +73,11 @@ if __name__ == "__main__":
         "兴趣爱好": ["编程", "阅读", "旅行"]
     }
     
-    # 保存为 Word 文件
-    save_dict_to_file(my_dict, "Results/output", "example", "word")
+    # 保存指定键为 Word 文件
+    save_dict_to_file(my_dict, "Results/output", "example_selected", "word", keys=["姓名", "职业"])
     
-    # 保存为 PDF 文件
-    save_dict_to_file(my_dict, "Results/output", "example", "pdf")
+    # 保存指定键为 PDF 文件
+    save_dict_to_file(my_dict, "Results/output", "example_selected", "pdf", keys=["年龄", "兴趣爱好"])
     
-    # 保存为 Markdown 文件
-    save_dict_to_file(my_dict, "Results/output", "example", "markdown")
+    # 保存指定键为 Markdown 文件
+    save_dict_to_file(my_dict, "Results/output", "example_selected", "markdown", keys=["姓名", "兴趣爱好"])

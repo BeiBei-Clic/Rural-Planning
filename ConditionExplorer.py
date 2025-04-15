@@ -124,8 +124,60 @@ class ConditionExplorer:
         return draft  # 返回最终的 draft_state
 
 
-    async def no_operation(self, draft: rural_DraftState) -> Dict[str, Any]:
-        #文档已经收集好信息了这就是个占位的函数
+    async def core_industry(self, draft: rural_DraftState) -> Dict[str, Any]:
+        """
+        分析该村可行的核心产业。
+
+        :param draft: rural_DraftState 实例，包含村庄名称、文件路径等信息
+        :return: 更新后的 draft_state，包含核心产业分析结果
+        """
+        # 构造提示信息
+        prompt = f'''
+请根据以下 Markdown 文件内容和村庄信息，调查并分析{draft["village_name"]}村当前的核心产业：
+
+{draft["document"]}
+
+**要求**：
+1. **当前核心产业现状**：
+   - 调查并描述当前的核心产业是什么。
+   - 分析该核心产业的现状，包括生产规模、市场需求、竞争力等。
+   - 提供具体数据（如产量、收入、市场份额等）作为支撑。
+
+2. **优势与劣势**：
+   - 分析当前核心产业的主要优势（如资源条件、政策支持等）。
+   - 分析当前核心产业的主要劣势（如技术不足、市场限制等）。
+
+3. **发展潜力**：
+   - 结合现状，评估该核心产业的未来发展潜力。
+   - 提出提升核心产业竞争力的建议。
+
+4. **案例分析**：
+   - 提供类似条件下其他村庄发展该产业的成功或失败案例。
+   - 说明这些案例对{draft["village_name"]}村的启示。
+
+**输出格式**：
+- 当前核心产业
+- 核心产业现状
+- 优势与劣势
+- 发展潜力
+- 案例分析
+'''
+        print('开始核心产业分析')
+        # 调用模型生成核心产业分析
+        response = await ChatOpenAI(model_name=draft["model"]).ainvoke([{"role": "user", "content": prompt}])
+
+        # 更新 draft_state，添加核心产业分析结果
+        # 检查并创建嵌套结构
+        if "local_condition" not in draft:
+            draft["local_condition"] = {}
+        if "core_industry" not in draft["local_condition"]:
+            draft["local_condition"]["core_industry"] = {}
+        if "current_industry" not in draft["local_condition"]["core_industry"]:
+            draft["local_condition"]["core_industry"]["current_industry"] = {}
+
+        # 赋值
+        draft["local_condition"]["core_industry"]["current_industry"] = response.content
+
         return draft
 
 
@@ -187,19 +239,18 @@ if __name__ == "__main__":
     draft = rural_DraftState(
         draft=[],
         village_name="金田村",
-        document=read_markdown_files("resource"),
+        document="",
         model="google/gemini-2.0-flash-001",
         local_condition={"natural": {}, "policy": {}},
-        navigate={}
+        navigate={},
+        industry_chain={}
     )
 
     # 初始化条件分析智能体
     analysis_agent = ConditionExplorer()
 
     # 并行执行条件分析
-    result_draft = asyncio.run(analysis_agent.parallel_explore(draft=draft))
+    result_draft = asyncio.run(analysis_agent.core_industry(draft=draft))
 
-    # 输出结果
-    # type_print(result_draft)
-    print(type(result_draft))
-    print(result_draft)
+    print(result_draft["local_condition"]["core_industry"]["current_industry"])
+

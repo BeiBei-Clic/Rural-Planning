@@ -46,11 +46,26 @@ class Navigator:
         risks = await self._analyze_risks(success_cases)
         self.conversation_history.append({"role": "assistant", "content": f"风险分析：{risks} ###"})
 
+         # 第四轮对话：规划未来核心产业
+        future_core_industry = await self.plan_future_core_industry(draft)
+        self.conversation_history.append({"role": "assistant", "content": f"未来核心产业规划：{future_core_industry} ###"})
+
         # 第五轮对话：确定发展定位
         development_positions = await self._determine_development_positions()
+        print("规划完成。")
         if development_positions:
             draft["navigate"]=development_positions
             draft["navigate_analysis"]=self.conversation_history
+            # 检查并创建嵌套结构
+            if "local_condition" not in draft:
+                draft["local_condition"] = {}
+            if "core_industry" not in draft["local_condition"]:
+                draft["local_condition"]["core_industry"] = {}
+            if "future_industry" not in draft["local_condition"]["core_industry"]:
+                draft["local_condition"]["core_industry"]["future_industry"] = {}
+
+            # 赋值
+            draft["local_condition"]["core_industry"]["future_industry"] = future_core_industry
 
         return draft
 
@@ -253,6 +268,52 @@ class Navigator:
 '''
         print("开始分析发展定位...")
         return await self._call_model_with_retry(prompt)
+    
+    async def plan_future_core_industry(self, draft: rural_DraftState) -> str:
+        """
+        规划乡村未来可行的核心产业。
+
+        :param draft: rural_DraftState 实例，包含村庄名称和现状信息
+        :return: 核心产业规划建议
+        """
+        prompt = f'''
+基于以下信息，规划 {draft["village_name"]} 村未来可行的核心产业：
+
+### 输入信息
+1. **村庄现状**：
+{self.local_condition}
+
+2. **市场空白分析**：
+{self.conversation_history[0]["content"]}
+
+3. **成功案例与幸存者偏差分析**：
+{self.conversation_history[1]["content"]}
+
+4. **风险分析**：
+{self.conversation_history[2]["content"]}
+
+### 分析要求
+1. **核心产业选择**：
+   - 提出未来可行的核心产业，并说明选择理由。
+   - 提供具体数据支撑（如资源优势、市场需求、政策支持等）。
+
+2. **发展路径**：
+   - 描述核心产业的发展路径，包括短期、中期和长期目标。
+   - 提供具体的实施步骤和关键节点。
+
+3. **资源需求**：
+   - 分析发展核心产业所需的资源（如资金、技术、人才等）。
+   - 提供获取资源的建议。
+
+4. **可行性分析**：
+   - 评估核心产业发展的可行性，包括潜在风险和应对措施。
+
+请基于以上要求，提供详细的核心产业规划建议，并附上具体数据和逻辑推导过程。
+'''
+        print("开始规划未来核心产业...")
+        response = await self._call_model_with_retry(prompt)
+        print("未来核心产业规划完成")
+        return response
 
 if __name__=="__main__":
     # 创建 rural_DraftState 实例
@@ -273,3 +334,5 @@ if __name__=="__main__":
     # 运行规划流程
     planning_draft = asyncio.run(navigator.start_planning(draft=draft))
     print(planning_draft["navigate"])
+    print(planning_draft["navigate_analysis"])
+    print(planning_draft["local_condition"])

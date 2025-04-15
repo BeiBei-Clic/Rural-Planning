@@ -7,6 +7,7 @@ from guidelines import guidelines
 from memory.draft import rural_DraftState
 from ConditionExplorer import ConditionExplorer
 from Navigator import Navigator
+from IndustryChain import IndustryChainAgent
 from save_to_local import save_dict_to_file
 
 
@@ -53,6 +54,7 @@ class ChiefEditor:
         return {
             "condition_explorer": ConditionExplorer(),
             "navigator": Navigator(),
+            "IndustryChain": IndustryChainAgent(),
         }
 
     def _create_workflow(self, agents: Dict[str, Callable[[rural_DraftState], rural_DraftState]]) -> StateGraph:
@@ -63,12 +65,14 @@ class ChiefEditor:
         :return: 工作流图。
         """
         workflow = StateGraph(rural_DraftState)
-        workflow.add_node("condition", agents["condition_explorer"].no_operation)
+        workflow.add_node("condition", agents["condition_explorer"].core_industry)
         workflow.add_node("navigator", agents["navigator"].start_planning)
+        workflow.add_node("IndustryChain", agents["IndustryChain"].parallel_analyze_chains)
 
         workflow.set_entry_point("condition")
         workflow.add_edge("condition", "navigator")
-        workflow.set_finish_point("navigator")
+        workflow.add_edge("navigator", "IndustryChain")
+        workflow.set_finish_point("IndustryChain")
 
         return workflow
 
@@ -84,7 +88,7 @@ class ChiefEditor:
 
         result = await app.ainvoke(self.draft)  # 调用工作流
         
-        save_dict_to_file(result["Navigate"], "Results", f"{result["village_name"]}村乡村振兴规划报告", "word")
+        save_dict_to_file(result, "Results", f"{result["village_name"]}村乡村振兴规划报告", "word",keys=["Navigate","Industry_Chain"])
         return result
 
 
@@ -98,10 +102,11 @@ async def main():
         draft=[],
         village_name="金田村",
         documents_path="resource",
-        model="qwen/qwen2.5-vl-32b-instruct:free",
+        model="deepseek/deepseek-r1:free",
         local_condition={"natural": {}, "policy": {}},
         navigate={},
-        navigate_analysis=[]
+        navigate_analysis=[],
+        industry_chain={}
     )
 
     workflow_manager = ChiefEditor(draft)  # 初始化工作流管理器
