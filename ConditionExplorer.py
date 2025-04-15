@@ -180,7 +180,7 @@ if __name__ == "__main__":
         draft=[],
         village_name="金田村",
         document=read_markdown_files("resource"),
-        model="glm-4-flash",
+        model="deepseek/deepseek-chat-v3-0324:free",
         local_condition={"natural": {}, "policy": {}},
         navigate={}
     )

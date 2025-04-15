@@ -97,7 +97,7 @@ async def main():
         draft=[],
         village_name="金田村",
         documents_path="resource",
-        model="glm-4-flash",
+        model="deepseek/deepseek-chat-v3-0324:free",
         local_condition={"natural": {}, "policy": {}},
         navigate={}
     )

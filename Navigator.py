@@ -5,6 +5,12 @@ import re
 
 from memory.draft import rural_DraftState
 
+import os
+from dotenv import load_dotenv
+load_dotenv()
+# print("OPENAI_BASE_URL:", os.getenv("OPENAI_BASE_URL"))
+# print("OPENAI_API_KEY:", os.getenv("OPENAI_API_KEY"))
+
 
 class Navigator:
     """
@@ -27,6 +33,8 @@ class Navigator:
         print(f"开始规划 {draft['village_name']} 的发展定位...")
         self.village_name = draft["village_name"]
         self.local_condition = draft["local_condition"]
+        self.model=draft["model"]
+        
 
         # 第一轮对话：分析市场空白
         market_gaps = await self._analyze_market_gaps()
@@ -69,7 +77,7 @@ class Navigator:
 {self.village_name}有什么竞争劣势，给出具体数字。
 '''
         try:
-            response = await ChatOpenAI(model_name="glm-4-flash").ainvoke([{"role": "user", "content": prompt}])
+            response = await ChatOpenAI(model_name=self.model).ainvoke([{"role": "user", "content": prompt}])
         except Exception as e:
             print(f"Error in _analyze_market_gaps: {e}")
             return ""
@@ -95,7 +103,7 @@ class Navigator:
 该村的成功之路上是如何克服资源劣势的？给出具体数字作为支撑。
 '''
         try:
-            response = await ChatOpenAI(model_name="glm-4-flash").ainvoke([{"role": "user", "content": prompt}])
+            response = await ChatOpenAI(model_name=self.model).ainvoke([{"role": "user", "content": prompt}])
         except Exception as e:
             print(f"Error in _analyze_success_cases: {e}")
             return ""
@@ -117,7 +125,7 @@ class Navigator:
 这些失败案例和成功案例哪个才更具有代表性，哪个是个别情况，哪个是普遍情况。
 '''
         try:
-            response = await ChatOpenAI(model_name="glm-4-flash").ainvoke([{"role": "user", "content": prompt}])
+            response = await ChatOpenAI(model_name=self.model).ainvoke([{"role": "user", "content": prompt}])
         except Exception as e:
             print(f"Error in _analyze_survivor_bias: {e}")
             return ""
@@ -141,7 +149,7 @@ class Navigator:
 该风险的主要应对措施的可行性有多大，给出具体数字作为支撑。
 '''
         try:
-            response = await ChatOpenAI(model_name="glm-4-flash").ainvoke([{"role": "user", "content": prompt}])
+            response = await ChatOpenAI(model_name=self.model).ainvoke([{"role": "user", "content": prompt}])
         except Exception as e:
             print(f"Error in _analyze_risks: {e}")
             return ""
@@ -180,7 +188,7 @@ class Navigator:
 请严格按照上述格式返回内容。
 '''
         try:
-            response = await ChatOpenAI(model_name="glm-4-flash").ainvoke([{"role": "user", "content": prompt}])
+            response = await ChatOpenAI(model_name=self.model).ainvoke([{"role": "user", "content": prompt}])
         except Exception as e:
             print(f"Error in _determine_development_positions: {e}")
             return {}
@@ -229,7 +237,7 @@ if __name__ == "__main__":
     draft = rural_DraftState(
         draft=[],
         village_name="金田村",
-        model="glm-4-flash",
+        model="deepseek/deepseek-chat-v3-0324:free",
         local_condition={
             "natural": {
                 "地形": "丘陵",
