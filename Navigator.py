@@ -1,16 +1,13 @@
 import asyncio
 from typing import Dict, Any, List
 from langchain_openai import ChatOpenAI
-import re
+import ast
+import json
 
 from memory.draft import rural_DraftState
 
-import os
 from dotenv import load_dotenv
 load_dotenv()
-# print("OPENAI_BASE_URL:", os.getenv("OPENAI_BASE_URL"))
-# print("OPENAI_API_KEY:", os.getenv("OPENAI_API_KEY"))
-
 
 class Navigator:
     """
@@ -32,7 +29,7 @@ class Navigator:
         """
         print(f"开始规划 {draft['village_name']} 的发展定位...")
         self.village_name = draft["village_name"]
-        self.local_condition = draft["local_condition"]
+        self.local_condition = draft["document"]
         self.model=draft["model"]
         
 
@@ -55,7 +52,7 @@ class Navigator:
         # 第五轮对话：确定发展定位
         development_positions = await self._determine_development_positions()
         if development_positions:
-            draft["navigate"].update(development_positions)
+            draft["navigate"]=development_positions
 
         return draft
 
@@ -78,6 +75,7 @@ class Navigator:
 '''
         try:
             response = await ChatOpenAI(model_name=self.model).ainvoke([{"role": "user", "content": prompt}])
+            print("市场空白分析完成")
         except Exception as e:
             print(f"Error in _analyze_market_gaps: {e}")
             return ""
@@ -104,6 +102,7 @@ class Navigator:
 '''
         try:
             response = await ChatOpenAI(model_name=self.model).ainvoke([{"role": "user", "content": prompt}])
+            print("成功案例分析完成")
         except Exception as e:
             print(f"Error in _analyze_success_cases: {e}")
             return ""
@@ -126,6 +125,7 @@ class Navigator:
 '''
         try:
             response = await ChatOpenAI(model_name=self.model).ainvoke([{"role": "user", "content": prompt}])
+            print("幸存者偏差分析完成")
         except Exception as e:
             print(f"Error in _analyze_survivor_bias: {e}")
             return ""
@@ -150,6 +150,7 @@ class Navigator:
 '''
         try:
             response = await ChatOpenAI(model_name=self.model).ainvoke([{"role": "user", "content": prompt}])
+            print("风险分析完成")
         except Exception as e:
             print(f"Error in _analyze_risks: {e}")
             return ""
@@ -165,72 +166,40 @@ class Navigator:
 综合以上分析，为 {self.village_name} 确定几个切实可行的发展定位：
 综合分析结果：{self.conversation_history}
 村庄现状：{self.local_condition}
-要参考市场空白、成功案例、幸存者偏差和风险分析，给出具体数字作为支撑。
-你的返回应该是这样的：
-发展定位1：xxxx
-发展定位1的具体分析：
-- 市场空白：xxxx,具体的数字支撑是什么
-- 成功案例：xxxx，具体的案例支撑是什么
-- 大方向做法：xxxx，具体的的做法有哪些，做到什么程度，数据支撑是什么
-- 风险分析：xxxx，具体的数据支撑是什么
-
-发展定位2：xxxx
-发展定位2的具体分析：
-- 市场空白：xxxx,具体的数字支撑是什么
-- 成功案例：xxxx，具体的案例支撑是什么
-- 大方向做法：xxxx，具体的的做法有哪些，做到什么程度，数据支撑是什么
-- 风险分析：xxxx，具体的数据支撑是什么
-
-发展定位3：...等等
-
-把所有可能的发展定位都找出来
-
-请严格按照上述格式返回内容。
+要参考市场空白、成功案例、幸存者偏差和风险分析，给出具体数字作为支撑。'''+'''
+你的返回必须是这样的：
+    '{
+    "发展定位1": "定位名称1",
+    "发展定位1的具体分析": {
+        "市场空白": "具体描述及数字支撑",
+        "成功案例": "具体描述及数字支撑",
+        "大方向做法": "具体描述及数字支撑",
+        "风险分析": "具体描述及数字支撑"
+    },
+    "发展定位2": "定位名称2",
+    "发展定位2的具体分析": {
+        "市场空白": "具体描述及数字支撑",
+        "成功案例": "具体描述及数字支撑",
+        "大方向做法": "具体描述及数字支撑",
+        "风险分析": "具体描述及数字支撑"
+    },
+    "发展定位3": "...",
+    "发展定位3的具体分析": {
+        "市场空白": "具体描述及数字支撑",
+        "成功案例": "具体描述及数字支撑",
+        "大方向做法": "具体描述及数字支撑",
+        "风险分析": "具体描述及数字支撑"
+    }
+    }'
+假如有更多的发展定位继续添加进去，只要按照上面的格式就可以了
 '''
         try:
             response = await ChatOpenAI(model_name=self.model).ainvoke([{"role": "user", "content": prompt}])
         except Exception as e:
             print(f"Error in _determine_development_positions: {e}")
             return {}
-
-        # 清理和解析响应内容
-        cleaned_text = "\n".join(
-            line for line in response.content.split('\n')
-            if line.startswith("发展定位") or line.startswith("- ")
-        )
-        response_dict = text_to_dict(cleaned_text)
-
-        return response_dict
-
-
-def text_to_dict(text: str) -> Dict[str, List[str]]:
-    """
-    将文本内容转换为字典格式。
-
-    :param text: 需要转换的文本内容
-    :return: 转换后的字典
-    """
-    result = {}
-    current_section = None
-    lines = text.split('\n')
-    for line in lines:
-        line = line.strip().replace("：", ":").replace("，", ",").replace("。", ".")
-        if line.startswith("发展定位"):
-            # 提取发展定位名称
-            match = re.match(r"发展定位\d+[:：](.+)", line)
-            if match:
-                current_section = match.group(1).strip()
-                result[current_section] = []
-        elif current_section and line.startswith("- "):
-            # 提取分析内容
-            analysis_content = line[2:].strip()  # 去掉"- "并去除多余空格
-            if analysis_content:
-                result[current_section].append(analysis_content)
-        elif current_section and line.startswith("发展定位"):
-            # 如果遇到新的发展定位，但当前section还未处理完，打印警告
-            print(f"Warning: New development position found before finishing current section - {line}")
-    return result
-
+        print("发展定位确定完成")
+        return response.content
 
 if __name__ == "__main__":
     # 创建 rural_DraftState 实例
@@ -238,17 +207,9 @@ if __name__ == "__main__":
         draft=[],
         village_name="金田村",
         model="google/gemini-2.0-flash-001",
-        local_condition={
-            "natural": {
-                "地形": "丘陵",
-                "气候": "温和湿润",
-                "水源": "丰富",
-            },
-            "policy": {
-                "国家政策": "乡村振兴战略",
-                "地方政策": "生态文明建设",
-            },
-        },
+        document="""
+                金田村自然环境很好。
+                """,
         navigate={},
     )
 
