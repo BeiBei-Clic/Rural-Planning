@@ -15,7 +15,7 @@ client = OpenAI(
 
 completion = client.chat.completions.create(
   extra_body={},
-  model="deepseek/deepseek-chat-v3-0324:free",
+  model="glm-4-flash",
   messages=[
     {
       "role": "user",

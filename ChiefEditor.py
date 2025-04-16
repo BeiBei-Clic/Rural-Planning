@@ -3,12 +3,10 @@ from typing import Dict, Callable, Any
 from langgraph.graph import StateGraph, END
 import asyncio
 
-from guidelines import guidelines
 from memory.draft import rural_DraftState
-from ConditionExplorer import ConditionExplorer
-from Navigator import Navigator
-from IndustryChain import IndustryChainAgent
 from save_to_local import save_dict_to_file
+from Executor import Executor
+from Execute_Reviewer import Execute_Reviewer
 
 
 def read_markdown_files(directory_path: str) -> Dict[str, str]:
@@ -52,9 +50,8 @@ class ChiefEditor:
         :return: 一个字典，包含初始化的子代理。
         """
         return {
-            "condition_explorer": ConditionExplorer(),
-            "navigator": Navigator(),
-            "IndustryChain": IndustryChainAgent(),
+            "Executor": Executor(),
+            "Exucute_Reviewer": Execute_Reviewer()
         }
 
     def _create_workflow(self, agents: Dict[str, Callable[[rural_DraftState], rural_DraftState]]) -> StateGraph:
@@ -65,14 +62,20 @@ class ChiefEditor:
         :return: 工作流图。
         """
         workflow = StateGraph(rural_DraftState)
-        workflow.add_node("condition", agents["condition_explorer"].core_industry)
-        workflow.add_node("navigator", agents["navigator"].start_planning)
-        workflow.add_node("IndustryChain", agents["IndustryChain"].parallel_analyze_chains)
+        workflow.add_node("Executor", agents["Executor"].parallel_plan)
+        workflow.add_node("Exucute_Reviewer", agents["Exucute_Reviewer"].parallel_review)
 
-        workflow.set_entry_point("condition")
-        workflow.add_edge("condition", "navigator")
-        workflow.add_edge("navigator", "IndustryChain")
-        workflow.set_finish_point("IndustryChain")
+        workflow.set_entry_point("Executor")
+        workflow.add_edge("Executor", "Exucute_Reviewer")
+
+        workflow.add_conditional_edges(
+            "Exucute_Reviewer", 
+            lambda draft: "不通过" if draft["passed"] == "审核不通过" else "通过",
+            {"不通过":"Executor","通过":END},
+            )
+            
+
+        workflow.set_finish_point("Exucute_Reviewer")
 
         return workflow
 
@@ -86,10 +89,10 @@ class ChiefEditor:
         workflow = self._create_workflow(agents)  # 创建工作流
         app = workflow.compile()  # 编译工作流
 
-        result = await app.ainvoke(self.draft)  # 调用工作流
+        result_draft = await app.ainvoke(self.draft)  # 调用工作流
         
-        save_dict_to_file(result, "Results", f"{result["village_name"]}村乡村振兴规划报告", "word",keys=["Navigate","Industry_Chain"])
-        return result
+        save_dict_to_file(result_draft["development_plan"], "Results", f"{result_draft["village_name"]}乡村振兴规划报告", "markdown")
+        return result_draft
 
 
 async def main():
@@ -99,14 +102,9 @@ async def main():
     创建初始的工作状态，初始化工作流管理器并运行。
     """
     draft = rural_DraftState(
-        draft=[],
         village_name="金田村",
         documents_path="resource",
-        model="deepseek/deepseek-r1:free",
-        local_condition={"natural": {}, "policy": {}},
-        navigate={},
-        navigate_analysis=[],
-        industry_chain={}
+        model="glm-4-flash",
     )
 
     workflow_manager = ChiefEditor(draft)  # 初始化工作流管理器
