@@ -6,6 +6,7 @@ import os
 
 from memory.draft import rural_DraftState
 from save_to_local import save_dict_to_file
+from Call_Model import call_model
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -86,9 +87,9 @@ class Executor:
 
 请按照上述要求完成规划，并确保建议具有可落地性。'''
             try:
-                response = await ChatOpenAI(model_name=draft["model"]).ainvoke([{"role": "user", "content": prompt}])
+                response = await call_model(self.semaphore, prompt, draft["model"])
                 print("当前核心产业规划完成\n")
-                return response.content
+                return response.choices[0].message.content
             except Exception as e:
                 print(f"规划当前核心产业时出错：{e}")
                 return {"task": "current_core_industry", "error": str(e)}
@@ -164,9 +165,9 @@ class Executor:
             
             try:
                 # 调用模型
-                response = await ChatOpenAI(model_name=draft["model"]).ainvoke([{"role": "user", "content": prompt}])
+                response = await call_model(self.semaphore, prompt, draft["model"])
                 print("未来核心产业规划完成\n")
-                return response.content
+                return response.choices[0].message.content
             except Exception as e:
                 print(f"规划未来核心产业时出错：{e}")
                 return {"task": "future_core_industry", "error": str(e)}
@@ -228,9 +229,9 @@ class Executor:
 
             try:
                 # 调用大模型生成规划
-                response = await ChatOpenAI(model_name=draft["model"]).ainvoke([{"role": "user", "content": prompt}])
+                response = await call_model(self.semaphore, prompt, draft["model"])
                 print("第一产业发展方案规划完成\n")
-                return response.content
+                return response.choices[0].message.content
             except Exception as e:
                 print(f"规划第一产业发展方案时出错：{e}")
                 return {"task": "primary_industry", "error": str(e)}
@@ -292,9 +293,9 @@ class Executor:
 
             try:
                 # 调用大模型生成规划
-                response = await ChatOpenAI(model_name=draft["model"]).ainvoke([{"role": "user", "content": prompt}])
+                response = await call_model(self.semaphore, prompt, draft["model"])
                 print("第二产业发展方案规划完成\n")
-                return response.content
+                return response.choices[0].message.content
             except Exception as e:
                 print(f"规划第二产业发展方案时出错：{e}")
                 return {"task": "secondary_industry", "error": str(e)}
@@ -356,9 +357,9 @@ class Executor:
 
             try:
                 # 调用大模型生成规划
-                response = await ChatOpenAI(model_name=draft["model"]).ainvoke([{"role": "user", "content": prompt}])
+                response = await call_model(self.semaphore, prompt, draft["model"])
                 print("第三产业发展方案规划完成\n")
-                return response.content
+                return response.choices[0].message.content
             except Exception as e:
                 print(f"规划第三产业发展方案时出错：{e}")
                 return {"task": "tertiary_industry", "error": str(e)}
@@ -420,9 +421,9 @@ class Executor:
 
             try:
                 # 调用大模型生成规划
-                response = await ChatOpenAI(model_name=draft["model"]).ainvoke([{"role": "user", "content": prompt}])
+                response = await call_model(self.semaphore, prompt, draft["model"])
                 print("基础设施建设发展方案规划完成\n")
-                return response.content
+                return response.choices[0].message.content
             except Exception as e:
                 print(f"规划基础设施建设发展方案时出错：{e}")
                 return {"task": "infrastructure", "error": str(e)}
@@ -484,9 +485,9 @@ class Executor:
 
             try:
                 # 调用大模型生成规划
-                response = await ChatOpenAI(model_name=draft["model"]).ainvoke([{"role": "user", "content": prompt}])
+                response = await call_model(self.semaphore, prompt, draft["model"])
                 print("生态环境保护发展方案规划完成\n")
-                return response.content
+                return response.choices[0].message.content
             except Exception as e:
                 print(f"规划生态环境保护发展方案时出错：{e}")
                 return {"task": "ecological_protection", "error": str(e)}
@@ -548,9 +549,9 @@ class Executor:
 
             try:
                 # 调用大模型生成规划
-                response = await ChatOpenAI(model_name=draft["model"]).ainvoke([{"role": "user", "content": prompt}])
+                response = await call_model(self.semaphore, prompt, draft["model"])
                 print("品牌建设发展方案规划完成\n")
-                return response.content
+                return response.choices[0].message.content
             except Exception as e:
                 print(f"规划品牌建设发展方案时出错：{e}")
                 return {"task": "brand_building", "error": str(e)}
@@ -612,9 +613,9 @@ class Executor:
 
             try:
                 # 调用大模型生成规划
-                response = await ChatOpenAI(model_name=draft["model"]).ainvoke([{"role": "user", "content": prompt}])
+                response = await call_model(self.semaphore, prompt, draft["model"])
                 print("市场推广和营销发展方案规划完成\n")
-                return response.content
+                return response.choices[0].message.content
             except Exception as e:
                 print(f"规划市场推广和营销发展方案时出错：{e}")
                 return {"task": "marketing", "error": str(e)}
@@ -676,9 +677,9 @@ class Executor:
 
             try:
                 # 调用大模型生成规划
-                response = await ChatOpenAI(model_name=draft["model"]).ainvoke([{"role": "user", "content": prompt}])
+                response = await call_model(self.semaphore, prompt, draft["model"])
                 print("检测和评估体系发展方案规划完成\n")
-                return response.content
+                return response.choices[0].message.content
             except Exception as e:
                 print(f"规划检测和评估体系发展方案时出错：{e}")
                 return {"task": "monitoring", "error": str(e)}
@@ -740,9 +741,9 @@ class Executor:
 
             try:
                 # 调用大模型生成规划
-                response = await ChatOpenAI(model_name=draft["model"]).ainvoke([{"role": "user", "content": prompt}])
+                response = await call_model(self.semaphore, prompt, draft["model"])
                 print("政策支持和资金保障发展方案规划完成\n")
-                return response.content
+                return response.choices[0].message.content
             except Exception as e:
                 print(f"规划政策支持和资金保障发展方案时出错：{e}")
                 return {"task": "policy_support", "error": str(e)}
@@ -818,11 +819,12 @@ def read_markdown_files(directory_path: str) -> Dict[str, str]:
 
 
 if __name__ == "__main__":
+    os.system('cls')
     # 创建 rural_DraftState 实例
     draft = rural_DraftState(
         document=read_markdown_files("Resource"),
         village_name="金田村",
-        model="glm-4-flash",
+        model="grok-3-mini-beta",
     )
 
     # 初始化乡村发展规划智能体

@@ -106,7 +106,7 @@ async def main():
     draft = rural_DraftState(
         village_name="金田村",
         documents_path="resource",
-        model="glm-4-flash",
+        model="grok-3-mini-beta",
     )
 
     workflow_manager = ChiefEditor(draft)  # 初始化工作流管理器

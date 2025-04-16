@@ -6,6 +6,7 @@ import os
 
 from memory.draft import rural_DraftState
 from save_to_local import save_dict_to_file
+from Call_Model import call_model
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -65,9 +66,9 @@ class Execute_Reviewer:
     '''
 
             # 调用大模型进行审核
-            response = await ChatOpenAI(model_name=draft["model"]).ainvoke([{"role": "user", "content": prompt}])
+            response = await call_model(self.semaphore, prompt, draft["model"])
             print(f"{task} 审核完成\n")
-            return response.content
+            return response.choices[0].message.content
 
     async def parallel_review(self, draft: rural_DraftState) -> Dict[str, Any]:
         print("开始并行审核\n")
@@ -127,11 +128,12 @@ def read_markdown_files(directory_path: str) -> Dict[str, str]:
 
 
 if __name__ == "__main__":
+    os.system('cls')
     # 创建 rural_DraftState 实例
     draft = rural_DraftState(
         document=read_markdown_files("Resource"),
         village_name="金田村",
-        model="glm-4-flash",
+        model="grok-3-mini-beta",
         development_plan={
             "当前核心产业": "当前核心产业发展方案内容...",
             "未来核心产业": "未来核心产业发展方案内容...",
