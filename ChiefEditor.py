@@ -92,6 +92,8 @@ class ChiefEditor:
         result_draft = await app.ainvoke(self.draft)  # 调用工作流
         
         save_dict_to_file(result_draft["development_plan"], "Results", f"{result_draft["village_name"]}乡村振兴规划报告", "markdown")
+        os.system('cls')
+        print(result_draft)
         return result_draft
 
 

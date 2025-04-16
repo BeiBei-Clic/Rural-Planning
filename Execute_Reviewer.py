@@ -16,45 +16,57 @@ class Execute_Reviewer:
         self.semaphore = asyncio.Semaphore(concurrency_limit)
 
     async def review(self, task: str, draft: rural_DraftState) -> Dict[str, Any]:
+        """
+        审核单个任务的发展方案。
+
+        :param task: 需要审核的任务名称
+        :param draft: rural_DraftState 实例
+        :return: 审核结果（JSON 格式）
+        """
         async with self.semaphore:
+            # 初始化审核状态
+            draft.setdefault("review", {})
+            draft["review"].setdefault(task, "")
 
-            if "review" not in draft:
-                draft["review"]={}
-            if task not in draft["review"]:
-                draft["review"][task] = ""
-
+            # 如果已审核通过，直接返回结果
             if "审核通过" in draft["review"][task]:
                 return draft["review"][task]
 
-            print(f"开始审核{task}\n")
+            print(f"开始审核 {task}\n")
 
-            if "development_plan" not in draft:
-                draft["development_plan"] = {}
-            if task not in draft["development_plan"]:
-                draft["development_plan"][task] = ""
+            # 初始化发展方案
+            draft.setdefault("development_plan", {})
+            draft["development_plan"].setdefault(task, "")
 
+            # 构建提示词
             prompt = f'''
-审查{draft["village_name"]}村的{task}发展方案：{draft["development_plan"][task]}
+    请审查{draft["village_name"]}村的{task}发展方案：{draft["development_plan"][task]}
 
-**村庄基本信息**：{draft["document"]}。
+    【村庄基本信息】：
+    {draft["document"]}
 
-{task}的发展方案要求：
-不能与该方案的的其他方向有冲突。
-每一点必须有真实数字作为支撑，附带数字来源。
-若没有真实数字，该观点必须有推理过程以及来源
-若都没有，则必须标明该点是编造的。
-报告必须是markdown格式的。
+    【审查要求】：
+    1. **一致性检查**：
+    - 确保该方案与其他方向的方案没有冲突。
+    2. **数据支持**：
+    - 每一点必须有真实数字作为支撑，并附带数字来源。
+    - 若没有真实数字，该观点必须有推理过程以及来源。
+    - 若都没有，则必须标明该点是编造的。
+    3. **格式要求**：
+    - 报告必须是 Markdown 格式。
 
-若报告满足上述要求，则返回“报告审核通过”。
-若不满足要求，详细列出每一点的修改建议,告知写稿人应该如何修改：
-不能与该方案的的其他方向有冲突。
-每一点必须有真实数字作为支撑，附带数字来源。
-若没有真实数字，该观点必须有推理过程以及来源
-若都没有，则必须标明该点是编造的。
-报告必须是markdown格式的。
-'''
-            response = await ChatOpenAI(model_name=draft["model"],).ainvoke([{"role": "user", "content": prompt}])
-            print(f"{task}审核完成\n")
+    【输出要求】：
+    1. 若报告满足上述要求，则返回“报告审核通过”。
+    2. 若不满足要求，请详细列出每一点的修改建议，并告知写稿人如何修改：
+    - 确保与其他方向方案无冲突。
+    - 每一点必须有真实数字或推理过程。
+    - 标明编造内容。
+    - 确保报告为 Markdown 格式。
+    '''
+
+            # 调用大模型进行审核
+            response = await ChatOpenAI(model_name=draft["model"]).ainvoke([{"role": "user", "content": prompt}])
+            print(f"{task} 审核完成\n")
             return response.content
 
     async def parallel_review(self, draft: rural_DraftState) -> Dict[str, Any]:
