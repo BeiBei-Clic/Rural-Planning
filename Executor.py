@@ -6,7 +6,7 @@ import os
 
 from memory.draft import rural_DraftState
 from save_to_local import save_dict_to_file
-from Call_Model import call_model
+from Recycle_Bin.Call_Model import call_model
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -56,7 +56,7 @@ class Executor:
             
             print("开始分析区域产业发展定位\n")
             prompt = f'''
-    你是一位产业经济分析师，任务是分析区域产业发展定位的现状、问题及优化建议。请按照以下步骤完成分析：
+    你是一位产业经济分析师，任务是分析{draft["village_name"]}产业发展定位的现状、问题及优化建议。请按照以下步骤完成分析：
 
     【任务目标】
     1. 分析当前区域产业定位的现状（包括主导产业、竞争优势、产业链完整性）
@@ -89,7 +89,7 @@ class Executor:
 
     请按照上述要求完成分析，并确保建议具有可落地性。'''
             try:
-                response = await call_model(self.semaphore, prompt, draft["model"])
+                response = await call_model(self.semaphore, prompt, draft["model_1"])
                 print("产业发展分析完成\n")
                 return response.choices[0].message.content
             except Exception as e:
@@ -186,7 +186,7 @@ class Executor:
             
             try:
                 # 调用模型
-                response = await call_model(self.semaphore, prompt, draft["model"])
+                response = await call_model(self.semaphore, prompt, draft["model_1"])
                 print("产业发展思路规划完成\n")
                 return response.choices[0].message.content
             except Exception as e:
@@ -284,7 +284,7 @@ class Executor:
             
             try:
                 # 调用模型
-                response = await call_model(self.semaphore, prompt, draft["model"])
+                response = await call_model(self.semaphore, prompt, draft["model_1"])
                 print("产业体系构建规划完成\n")
                 return response.choices[0].message.content
             except Exception as e:
@@ -383,7 +383,7 @@ class Executor:
             
             try:
                 # 调用模型
-                response = await call_model(self.semaphore, prompt, draft["model"])
+                response = await call_model(self.semaphore, prompt, draft["model_1"])
                 print("第一产业发展规划完成\n")
                 return response.choices[0].message.content
             except Exception as e:
@@ -481,7 +481,7 @@ class Executor:
             
             try:
                 # 调用模型
-                response = await call_model(self.semaphore, prompt, draft["model"])
+                response = await call_model(self.semaphore, prompt, draft["model_1"])
                 print("第二产业发展规划完成\n")
                 return response.choices[0].message.content
             except Exception as e:
@@ -579,7 +579,7 @@ class Executor:
             
             try:
                 # 调用模型
-                response = await call_model(self.semaphore, prompt, draft["model"])
+                response = await call_model(self.semaphore, prompt, draft["model_1"])
                 print("第三产业发展规划完成\n")
                 return response.choices[0].message.content
             except Exception as e:
@@ -678,7 +678,7 @@ class Executor:
             
             try:
                 # 调用模型
-                response = await call_model(self.semaphore, prompt, draft["model"])
+                response = await call_model(self.semaphore, prompt, draft["model_1"])
                 print("基础设施建设规划完成\n")
                 return response.choices[0].message.content
             except Exception as e:
@@ -776,7 +776,7 @@ class Executor:
             
             try:
                 # 调用模型
-                response = await call_model(self.semaphore, prompt, draft["model"])
+                response = await call_model(self.semaphore, prompt, draft["model_1"])
                 print("生态环境保护规划完成\n")
                 return response.choices[0].message.content
             except Exception as e:
@@ -874,7 +874,7 @@ class Executor:
             
             try:
                 # 调用模型
-                response = await call_model(self.semaphore, prompt, draft["model"])
+                response = await call_model(self.semaphore, prompt, draft["model_1"])
                 print("品牌建设规划完成\n")
                 return response.choices[0].message.content
             except Exception as e:
@@ -972,7 +972,7 @@ class Executor:
             
             try:
                 # 调用模型
-                response = await call_model(self.semaphore, prompt, draft["model"])
+                response = await call_model(self.semaphore, prompt, draft["model_1"])
                 print("市场推广和营销规划完成\n")
                 return response.choices[0].message.content
             except Exception as e:
@@ -1070,7 +1070,7 @@ class Executor:
             
             try:
                 # 调用模型
-                response = await call_model(self.semaphore, prompt, draft["model"])
+                response = await call_model(self.semaphore, prompt, draft["model_1"])
                 print("监测评估体系规划完成\n")
                 return response.choices[0].message.content
             except Exception as e:
@@ -1168,7 +1168,7 @@ class Executor:
             
             try:
                 # 调用模型
-                response = await call_model(self.semaphore, prompt, draft["model"])
+                response = await call_model(self.semaphore, prompt, draft["model_1"])
                 print("政策支持与资金保障规划完成\n")
                 return response.choices[0].message.content
             except Exception as e:

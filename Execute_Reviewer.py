@@ -6,7 +6,7 @@ import os
 
 from memory.draft import rural_DraftState
 from save_to_local import save_dict_to_file
-from Call_Model import call_model
+from Recycle_Bin.Call_Model import call_model
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -66,7 +66,7 @@ class Execute_Reviewer:
     '''
 
             # 调用大模型进行审核
-            response = await call_model(self.semaphore, prompt, draft["model"])
+            response = await call_model(self.semaphore, prompt, draft["model_1"])
             print(f"{task} 审核完成\n")
             return response.choices[0].message.content
 

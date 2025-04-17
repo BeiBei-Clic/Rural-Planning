@@ -63,9 +63,9 @@ class Reportor_2:
 
             try:
                 # 调用模型
-                response = await call_model(self.semaphore, prompt, draft["model"])
-                print(f"第 {i+1} 批次信息提取完成")
+                response = await call_model(self.semaphore, prompt,"google/gemma-3-4b-it")
                 result = response.choices[0].message.content
+                print(f"第 {i+1} 批次信息提取完成")
             except Exception as e:
                 print(f"第 {i+1} 批次信息提取时出错：{e}")
                 result += f"\n【第 {i+1} 批次提取失败】: {str(e)}"
@@ -80,6 +80,7 @@ class Reportor_2:
         :return: 综合报告（字典格式）
         """
         async with self.semaphore:
+            save_dict_to_file(draft["plan"], "Results", f"{draft["village_name"]}乡村振兴规划报告（原始版）", "markdown")
             print(f"开始生成综合报告\n")
             
             # 调用 report_in_batches 方法生成报告
@@ -89,7 +90,8 @@ class Reportor_2:
             if "report" not in draft:
                 draft["report"] = {}
             draft["report"] = final_report
-            
+
+            save_dict_to_file(draft, "Results", f"{draft["village_name"]}乡村振兴规划报告（整合版）", "markdown",keys=["report"])
             return draft
 
 def read_markdown_files(directory_path: str) -> Dict[str, str]:
@@ -118,7 +120,7 @@ if __name__ == "__main__":
     draft = rural_DraftState(
         document=read_markdown_files("Resource"),
         village_name="金田村",
-        model="grok-3-mini-beta",
+        model="google/gemini-2.0-flash-thinking-exp:free",
         plan={
             "当前核心产业": "当前核心产业发展方案内容...",
             "未来核心产业": "未来核心产业发展方案内容...",
@@ -133,4 +135,4 @@ if __name__ == "__main__":
     result_draft = asyncio.run(report_generator.generate_report(draft=draft))
 
     # 假设 save_dict_to_file 是一个保存字典到文件的函数
-    save_dict_to_file(result_draft, "Results\Output", f"{result_draft['village_name']}乡村振兴规划报告", "markdown", keys=["report"])
+    # save_dict_to_file(result_draft, "Results\Output", f"{result_draft['village_name']}乡村振兴规划报告", "markdown", keys=["report"])

@@ -17,7 +17,8 @@ class rural_DraftState(TypedDict):
     village_name: str  # 村庄名称
     documents_path: str  # 本地文件的路径
     document: Dict[str, str]  # 本地文件的解析结果
-    model: str  # 使用的模型名称
+    model_1: str  # 使用的模型名称
+    model_2: str  # 使用的模型名称
     plan: Dict[str, Any]  # 发展规划结果
     review: Dict[str, Any]  # 审核结果
     passed: str  # 审核结果

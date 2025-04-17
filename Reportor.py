@@ -27,6 +27,7 @@ class Reportor:
         :return: 综合报告（字典格式）
         """
         async with self.semaphore:
+            save_dict_to_file(draft["plan"], "Results", f"{draft["village_name"]}乡村振兴规划报告（原始版）", "markdown")
             print(f"开始生成综合报告\n")
 
             # 提取核心定位
@@ -36,12 +37,15 @@ class Reportor:
             prompt = f'''
 提取{draft["village_name"]}核心发展定位作为标题并撰写一份正式的乡村规划报告。
 
-把{draft["plan"] if "plan" in draft else "无来源"}排版成官方文件
+优化{draft["plan"] if "plan" in draft else "无来源"}排版，要求：
+1. 官方文档形式
+2. 保留原有编排的顺序
+3. 添加开头和结语
 
 '''
 
             # 调用大模型生成综合报告
-            response = await call_model(self.semaphore, prompt, draft["model"])
+            response = await call_model(self.semaphore, prompt, draft["model_2"])
             comprehensive_report = response.choices[0].message.content
             # print(f"综合报告生成完成\n")
             
@@ -53,6 +57,7 @@ class Reportor:
             draft["report"] = comprehensive_report
             # draft["position"] = core_positioning
             # print(draft["comprehensive_report"])
+            save_dict_to_file(draft, "Results", f"{draft["village_name"]}乡村振兴规划报告（整合版）", "markdown",keys=["report"])
             return draft
 
 
@@ -96,4 +101,4 @@ if __name__ == "__main__":
     # 生成综合报告
     result_draft = asyncio.run(report_generator.generate_report(draft=draft))
 
-    save_dict_to_file(result_draft, "Results\Output", f"{result_draft["village_name"]}乡村振兴规划报告", "markdown",keys=["report"])
+    # save_dict_to_file(result_draft, "Results\Output", f"{result_draft["village_name"]}乡村振兴规划报告", "markdown",keys=["report"])

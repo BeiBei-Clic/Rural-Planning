@@ -8,7 +8,7 @@ from save_to_local import save_dict_to_file
 from Executor import Executor
 from Execute_Reviewer import Execute_Reviewer
 from Reportor import Reportor
-from Report_2 import Reportor_2
+
 
 
 def read_markdown_files(directory_path: str) -> Dict[str, str]:
@@ -54,7 +54,7 @@ class ChiefEditor:
         return {
             "Executor": Executor(),
             "Execute_Reviewer": Execute_Reviewer(),
-            "Reportor": Reportor_2(),
+            "Reportor": Reportor(),
         }
 
     def _create_workflow(self, agents: Dict[str, Callable[[rural_DraftState], rural_DraftState]]) -> StateGraph:
@@ -96,7 +96,7 @@ class ChiefEditor:
 
         result_draft = await app.ainvoke(self.draft,{"recursion_limit": 1000})  # 调用工作流
         
-        save_dict_to_file(result_draft, "Results", f"{result_draft["village_name"]}乡村振兴规划报告", "markdown",keys=["report"])
+        # save_dict_to_file(result_draft, "Results", f"{result_draft["village_name"]}乡村振兴规划报告", "markdown",keys=["report"])
         # os.system('cls')
         # print(result_draft)
         return result_draft
@@ -111,7 +111,8 @@ async def main():
     draft = rural_DraftState(
         village_name="金田村",
         documents_path="resource",
-        model="grok-3-mini-beta",
+        model_1="grok-3-mini-beta",
+        model_2="deepseek/deepseek-v3-base:free"
     )
 
     workflow_manager = ChiefEditor(draft)  # 初始化工作流管理器
