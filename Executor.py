@@ -51,7 +51,7 @@ class Executor:
             if "当前核心产业" not in draft["review"]:
                 draft["review"]["当前核心产业"] = ""         
             if "审核通过" in draft["review"]["当前核心产业"]:
-                return draft["review"]["当前核心产业"]
+                return draft["development_plan"]["当前核心产业"]
             print("开始规划当前核心产业的发展现状与上下游布局\n")
             prompt = f'''
 你是一位乡村产业规划专家，任务是为{draft["village_name"]}村制定核心产业规划方案。请按照以下步骤完成分析：
@@ -107,10 +107,9 @@ class Executor:
                 draft["review"] = {}
             if "未来核心产业" not in draft["review"]:
                 draft["review"]["未来核心产业"] = ""
-            
             # 检查是否已审核通过
             if "审核通过" in draft["review"]["未来核心产业"]:
-                return draft["review"]["未来核心产业"]
+                return draft["development_plan"]["未来核心产业"]
             
             print("开始规划未来核心产业的发展方向与上下游布局\n")
             
@@ -188,7 +187,7 @@ class Executor:
 
             # 检查是否已审核通过
             if "审核通过" in draft["review"]["第一产业"]:
-                return draft["review"]["第一产业"]
+                return draft["development_plan"]["第一产业"]
 
             print("开始规划第一产业发展方案\n")
 
@@ -252,7 +251,7 @@ class Executor:
 
             # 检查是否已审核通过
             if "审核通过" in draft["review"]["第二产业"]:
-                return draft["review"]["第二产业"]
+                return draft["development_plan"]["第二产业"]
 
             print("开始规划第二产业发展方案\n")
 
@@ -316,7 +315,7 @@ class Executor:
 
             # 检查是否已审核通过
             if "审核通过" in draft["review"]["第三产业"]:
-                return draft["review"]["第三产业"]
+                return draft["development_plan"]["第三产业"]
 
             print("开始规划第三产业发展方案\n")
 
@@ -380,7 +379,7 @@ class Executor:
 
             # 检查是否已审核通过
             if "审核通过" in draft["review"]["基础设施"]:
-                return draft["review"]["基础设施"]
+                return draft["development_plan"]["基础设施"]
 
             print("开始规划基础设施建设发展方案\n")
 
@@ -444,7 +443,7 @@ class Executor:
 
             # 检查是否已审核通过
             if "审核通过" in draft["review"]["生态环境"]:
-                return draft["review"]["生态环境"]
+                return draft["development_plan"]["生态环境"]
 
             print("开始规划生态环境保护发展方案\n")
 
@@ -508,7 +507,7 @@ class Executor:
 
             # 检查是否已审核通过
             if "审核通过" in draft["review"]["品牌建设"]:
-                return draft["review"]["品牌建设"]
+                return draft["development_plan"]["品牌建设"]
 
             print("开始规划品牌建设发展方案\n")
 
@@ -572,7 +571,7 @@ class Executor:
 
             # 检查是否已审核通过
             if "审核通过" in draft["review"]["市场营销"]:
-                return draft["review"]["市场营销"]
+                return draft["development_plan"]["市场营销"]
 
             print("开始规划市场推广和营销发展方案\n")
 
@@ -636,7 +635,7 @@ class Executor:
 
             # 检查是否已审核通过
             if "审核通过" in draft["review"]["检测与评价"]:
-                return draft["review"]["检测与评价"]
+                return draft["development_plan"]["检测与评价"]
 
             print("开始规划检测和评估体系发展方案\n")
 
@@ -700,7 +699,7 @@ class Executor:
 
             # 检查是否已审核通过
             if "审核通过" in draft["review"]["政策与资金"]:
-                return draft["review"]["政策与资金"]
+                return draft["development_plan"]["政策与资金"]
 
             print("开始规划政策支持和资金保障发展方案\n")
 

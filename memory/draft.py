@@ -21,3 +21,5 @@ class rural_DraftState(TypedDict):
     development_plan: Dict[str, Any]  # 发展规划结果
     review: Dict[str, Any]  # 审核结果
     passed: str  # 审核结果
+    comprehensive_report: str  # 综合报告
+    core_positioning: str  # 核心定位
