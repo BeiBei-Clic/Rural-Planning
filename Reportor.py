@@ -17,36 +17,7 @@ class Reportor:
         self.concurrency_limit = concurrency_limit
         self.semaphore = asyncio.Semaphore(concurrency_limit)
 
-    async def extract_core_positioning(self, draft: rural_DraftState) -> str:
-        """
-        从已有规划报告中提取乡村的核心定位。
-
-        :param draft: rural_DraftState 实例
-        :return: 核心定位描述
-        """
-        async with self.semaphore:
-            print(f"开始提取核心定位\n")
-
-            # 构建提示词
-            prompt = f'''
-    请根据以下规划报告内容，提炼出{draft["village_name"]}村的核心定位：
-    {draft["development_plan"]}
-
-乡村发展定位是指基于乡村的资源禀赋、地理位置、产业特色、文化传统、生态环境等综合因素，明确乡村在区域经济社会发展中的角色和功能，确定其未来发展的核心方向和目标。发展定位通常涵盖以下几个方面：
-
-核心产业方向：明确乡村的主导产业，如农业、旅游业、生态保护等。
-功能角色：确定乡村在区域发展中的功能定位，如农业生产基地、生态保护区、文化旅游目的地等。
-发展目标：设定乡村未来发展的具体目标，如经济增长、生态改善、文化传承等。
-资源利用：合理规划乡村资源的开发与利用，确保可持续发展。
-社会效益：关注乡村居民的生活质量提升和社会和谐发展。
-通过科学的乡村发展定位，可以为乡村制定清晰的发展路径，指导资源配置和政策支持，推动乡村振兴和可持续发展。
-    '''
-
-            # 调用大模型提取核心定位
-            response = await call_model(self.semaphore, prompt, draft["model"])
-            core_positioning = response.choices[0].message.content.strip()
-            # print(f"核心定位提取完成：{core_positioning}\n")
-            return core_positioning
+    
 
     async def generate_report(self, draft: rural_DraftState) -> Dict[str, Any]:
         """
@@ -59,24 +30,15 @@ class Reportor:
             print(f"开始生成综合报告\n")
 
             # 提取核心定位
-            core_positioning = await self.extract_core_positioning(draft)
+            # core_positioning = await self.extract_core_positioning(draft)
 
             # 构建提示词
             prompt = f'''
-    请把下面关于{draft["village_name"]}的乡村振兴规划：
-    {draft["development_plan"]}
-排版美化成一份完整的乡村振兴规划报告
-    
-    【核心定位】：
-    {core_positioning}
+提取{draft["village_name"]}核心发展定位作为标题并撰写一份正式的乡村规划报告。
 
-    【输出要求】：
-    把核心发展定位提炼出来作为标题
-全面综合地撰写报告
-    2. 报告应符合官方公文格式，使用正式语言。
-    3. 每一部分内容都应该详细，逻辑清晰，有理有据，标注数据来源
-    4. 输出格式为 Markdown。
-    '''
+把{draft["plan"] if "plan" in draft else "无来源"}排版成官方文件
+
+'''
 
             # 调用大模型生成综合报告
             response = await call_model(self.semaphore, prompt, draft["model"])
@@ -84,12 +46,12 @@ class Reportor:
             # print(f"综合报告生成完成\n")
             
             # 更新 draft
-            if "comprehensive_report" not in draft:
-                draft["comprehensive_report"] = {}
-            if "core_positioning" not in draft:
-                draft["core_positioning"] = {}
-            draft["comprehensive_report"] = comprehensive_report
-            draft["core_positioning"] = core_positioning
+            if "report" not in draft:
+                draft["report"] = {}
+            if "position" not in draft:
+                draft["position"] = {}
+            draft["report"] = comprehensive_report
+            # draft["position"] = core_positioning
             # print(draft["comprehensive_report"])
             return draft
 
@@ -121,7 +83,7 @@ if __name__ == "__main__":
         document=read_markdown_files("Resource"),
         village_name="金田村",
         model="grok-3-mini-beta",
-        development_plan={
+    plan={
             "当前核心产业": "当前核心产业发展方案内容...",
             "未来核心产业": "未来核心产业发展方案内容...",
             # 其他任务的发展方案内容...
@@ -132,6 +94,6 @@ if __name__ == "__main__":
     report_generator = Reportor()
 
     # 生成综合报告
-    comprehensive_draft = asyncio.run(report_generator.generate_report(draft=draft))
+    result_draft = asyncio.run(report_generator.generate_report(draft=draft))
 
-    save_dict_to_file(comprehensive_draft, "Results", f"{comprehensive_draft["village_name"]}乡村振兴规划报告", "markdown",keys=["comprehensive_report"])
+    save_dict_to_file(result_draft, "Results\Output", f"{result_draft["village_name"]}乡村振兴规划报告", "markdown",keys=["report"])

@@ -8,6 +8,7 @@ from save_to_local import save_dict_to_file
 from Executor import Executor
 from Execute_Reviewer import Execute_Reviewer
 from Reportor import Reportor
+from Report_2 import Reportor_2
 
 
 def read_markdown_files(directory_path: str) -> Dict[str, str]:
@@ -53,7 +54,7 @@ class ChiefEditor:
         return {
             "Executor": Executor(),
             "Execute_Reviewer": Execute_Reviewer(),
-            "Reportor": Reportor(),
+            "Reportor": Reportor_2(),
         }
 
     def _create_workflow(self, agents: Dict[str, Callable[[rural_DraftState], rural_DraftState]]) -> StateGraph:
@@ -74,8 +75,9 @@ class ChiefEditor:
         workflow.add_conditional_edges(
             "Execute_Reviewer", 
             lambda draft: "不通过" if draft["passed"] == "审核不通过" else "通过",
-            {"不通过":"Executor","通过":END},
+            {"不通过":"Executor","通过":"Reportor"},
             )
+        workflow.add_edge("Reportor",END)
         # workflow.add_edge("Executor", "Reportor")
         # workflow.add_edge("Reportor",END)
             
@@ -92,9 +94,9 @@ class ChiefEditor:
         workflow = self._create_workflow(agents)  # 创建工作流
         app = workflow.compile()  # 编译工作流
 
-        result_draft = await app.ainvoke(self.draft,{"recursion_limit": 100})  # 调用工作流
+        result_draft = await app.ainvoke(self.draft,{"recursion_limit": 1000})  # 调用工作流
         
-        save_dict_to_file(result_draft["development_plan"], "Results", f"{result_draft["village_name"]}乡村振兴规划报告", "markdown")
+        save_dict_to_file(result_draft, "Results", f"{result_draft["village_name"]}乡村振兴规划报告", "markdown",keys=["report"])
         # os.system('cls')
         # print(result_draft)
         return result_draft

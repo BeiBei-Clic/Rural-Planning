@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Execute_Reviewer:
-    def __init__(self, concurrency_limit=10):
+    def __init__(self, concurrency_limit=60):
         self.concurrency_limit = concurrency_limit
         self.semaphore = asyncio.Semaphore(concurrency_limit)
 
@@ -36,12 +36,12 @@ class Execute_Reviewer:
             print(f"开始审核 {task}\n")
 
             # 初始化发展方案
-            draft.setdefault("development_plan", {})
-            draft["development_plan"].setdefault(task, "")
+            draft.setdefault("plan", {})
+            draft["plan"].setdefault(task, "")
 
             # 构建提示词
             prompt = f'''
-    请审查{draft["village_name"]}村的{task}发展方案：{draft["development_plan"][task]}
+    请审查{draft["village_name"]}村的{task}发展方案：{draft["plan"][task]}
 
     【村庄基本信息】：
     {draft["document"]}
@@ -77,7 +77,7 @@ class Execute_Reviewer:
             draft["passed"] = "审核不通过"
         
         try:
-            tasks = [self.review(task, draft) for task in draft["development_plan"]]
+            tasks = [self.review(task, draft) for task in draft["plan"]]
         except:
             print(draft)
 
@@ -87,7 +87,7 @@ class Execute_Reviewer:
         if "review" not in draft:
             draft["review"] = {}
 
-        keys = list(draft["development_plan"].keys())
+        keys = list(draft["plan"].keys())
         k = 0  # 用来作为draft["review"]的下标索引
         a = 0  # 记录审核是否通过
         for result in results:
