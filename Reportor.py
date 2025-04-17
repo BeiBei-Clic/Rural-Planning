@@ -90,7 +90,7 @@ class Reportor:
                 draft["core_positioning"] = {}
             draft["comprehensive_report"] = comprehensive_report
             draft["core_positioning"] = core_positioning
-            print(draft["comprehensive_report"])
+            # print(draft["comprehensive_report"])
             return draft
 
 

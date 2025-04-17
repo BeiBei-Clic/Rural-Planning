@@ -74,10 +74,10 @@ class ChiefEditor:
         workflow.add_conditional_edges(
             "Execute_Reviewer", 
             lambda draft: "不通过" if draft["passed"] == "审核不通过" else "通过",
-            {"不通过":"Executor","通过":"Reportor"},
+            {"不通过":"Executor","通过":END},
             )
         # workflow.add_edge("Executor", "Reportor")
-        workflow.add_edge("Reportor",END)
+        # workflow.add_edge("Reportor",END)
             
 
         return workflow
@@ -94,9 +94,9 @@ class ChiefEditor:
 
         result_draft = await app.ainvoke(self.draft,{"recursion_limit": 100})  # 调用工作流
         
-        save_dict_to_file(result_draft, "Results", f"{result_draft["village_name"]}乡村振兴规划报告", "markdown",keys=["comprehensive_report"])
+        save_dict_to_file(result_draft["development_plan"], "Results", f"{result_draft["village_name"]}乡村振兴规划报告", "markdown")
         # os.system('cls')
-        print(result_draft)
+        # print(result_draft)
         return result_draft
 
 
