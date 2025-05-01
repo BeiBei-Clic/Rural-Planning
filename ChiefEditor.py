@@ -112,7 +112,7 @@ async def main():
         village_name="金田村",
         documents_path="resource",
         model_1="grok-3-mini-beta",
-        model_2="deepseek/deepseek-v3-base:free"
+        model_2="grok-3-mini-beta"
     )
 
     workflow_manager = ChiefEditor(draft)  # 初始化工作流管理器

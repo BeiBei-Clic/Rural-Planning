@@ -84,15 +84,15 @@ class Execute_Reviewer:
         results = await asyncio.gather(*tasks)
 
         # 合并结果到 draft 中
-        if "review" not in draft:
-            draft["review"] = {}
+        # if "review" not in draft:
+        #     draft["review"] = {}
 
         keys = list(draft["plan"].keys())
         k = 0  # 用来作为draft["review"]的下标索引
         a = 0  # 记录审核是否通过
         for result in results:
-            if keys[k] not in draft["review"]:
-                draft["review"][keys[k]] = {}
+            # if keys[k] not in draft["review"]:
+            #     draft["review"][keys[k]] = {}
             draft["review"][keys[k]] = result
             k += 1
             
